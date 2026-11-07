@@ -1,14 +1,17 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub const SCREEN_WIDTH: usize = 64;
+pub const SCREEN_HEIGHT: usize = 32;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+const RAM_SIZE: usize = 4096;
+const REGISTER_COUNT: usize = 16;
+const STACK_SIZE: usize = 16;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub struct Emulator{
+    pc: u16,
+    ram: [u8; RAM_SIZE],
+    screen: [bool; SCREEN_WIDTH * SCREEN_HEIGHT],
+    v_registers: [u8; REGISTER_COUNT],
+    i_register: u16,
+    stack: [u16; STACK_SIZE],
+    stack_pointer: u16,
+    
 }
