@@ -1,3 +1,5 @@
+use core::borrow;
+
 const FONTSET_SIZE: usize = 80;
 
 const FONTSET: [u8; FONTSET_SIZE] = [
@@ -201,7 +203,46 @@ impl Emulator{
                 let y = digit3 as usize;
                 self.v_registers[x] ^= self.v_registers[y];
             },
-            
+            // VX += VY
+            (8, _, _, 4) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+
+                let (new_vx, carry) = self.v_registers[x].overflowing_add(self.v_registers[y]);
+                let new_vf = if carry { 1 } else { 0 };
+
+                self.v_registers[x] = new_vx;
+                self.v_registers[0xF] = new_vf;
+            },
+            // VX -= VY
+            (8, _, _, 5) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+
+                let (new_vx, borrow) = self.v_registers[x].overflowing_sub(self.v_registers[y]);
+                let new_vf = if borrow { 0 } else { 1 };
+
+                self.v_registers[x] = new_vx;
+                self.v_registers[0xF] = new_vf;
+            },
+            // VX >>= 1
+            (8, _, _, 6) => {
+                let x = digit2 as usize;
+                let lsb = self.v_registers[x] & 1;
+                self.v_registers[x] >>= 1;
+                self.v_registers[0xF] = lsb;
+            },
+            // VX = VY - VX
+            (8, _, _, 7) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+
+                let (new_vx, borrow) = self.v_registers[y].overflowing_sub(self.v_registers[x]);
+                let new_vf = if borrow { 0 } else { 1 };
+
+                self.v_registers[x] = new_vx;
+                self.v_registers[0xF] = new_vf;
+            }
             (_, _, _, _,) => unimplemented!(),
         }
     }
