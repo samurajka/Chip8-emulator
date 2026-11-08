@@ -121,8 +121,49 @@ impl Emulator{
         let digit4 = (opcode & 0x000F);
 
         match (digit1, digit2, digit3, digit4) {
+            // NOP  nop
+            (0, 0, 0, 0) => return,
+            // CLS  clear screen
+            (0, 0, 0xE, 0) => {
+                self.screen = [false; SCREEN_WIDTH * SCREEN_HEIGHT];
+            },
+            // RET  return from subroutine
+            (0, 0, 0xE, 0xE) => {
+                let return_addr = self.pop();
+                self.program_counter = return_addr;
+            },
+            // JMP NNN  jump
+            (1, _, _, _) => {
+                let nnn = opcode & 0xFFF;
+                self.program_counter = nnn;
+            },
+            // CALL NNN  call subroutine
+            (2, _, _, _) => {
+                let nnn = opcode & 0xFFF;
+                self.push(self.program_counter);
+                self.program_counter = nnn;
+            },
+            // SKIP VX == NN  skip line if VX == NN
+            (3, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                if self.v_registers[x] == nn {
+                    self.program_counter += 2;
+                }
+            },
+            // SKIP VX != NN  skip line if VX != NN
+            (4, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                if self.v_registers[x] != nn {
+                    self.program_counter += 2;
+                }
+            },
+            
             (_, _, _, _,) => unimplemented!(),
         }
     }
+
+
 }
 
