@@ -159,6 +159,48 @@ impl Emulator{
                     self.program_counter += 2;
                 }
             },
+            // SKIP VX == VY  skip line if VX == VY
+            (5, _, _, 0) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                if self.v_registers[x] == self.v_registers[y] {
+                    self.program_counter += 2;
+                }
+            },
+            // VX = NN
+            (6, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                self.v_registers[x] = nn;
+            },
+            // VX += NN
+            (7, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                self.v_registers[x] = self.v_registers[x].wrapping_add(nn);
+            },
+            // VX = VY
+            (8, _, _, 0) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                self.v_registers[x] = self.v_registers[y];
+            },
+            // bitwise operations
+            (8, _, _, 1) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                self.v_registers[x] |= self.v_registers[y];
+            },
+            (8, _, _, 2) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                self.v_registers[x] &= self.v_registers[y];
+            },
+            (8, _, _, 3) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                self.v_registers[x] ^= self.v_registers[y];
+            },
             
             (_, _, _, _,) => unimplemented!(),
         }
