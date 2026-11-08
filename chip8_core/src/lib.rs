@@ -62,6 +62,21 @@ impl Emulator{
         new_emulator
     }
 
+    pub fn reset(&mut self) {
+        self.program_counter = START_ADDRESS;
+        self.ram = [0; RAM_SIZE];
+        self.screen = [false; SCREEN_WIDTH * SCREEN_HEIGHT];
+        self.v_registers = [0; REGISTER_COUNT];
+        self.i_register = 0;
+        self.stack_pointer = 0;
+        self.stack = [0; STACK_SIZE];
+        self.keys = [false; KEY_COUNT];
+        self.delay_timer = 0;
+        self.sound_timer = 0;
+
+        self.ram[..FONTSET_SIZE].copy_from_slice(&FONTSET);
+    }
+
     fn push(&mut self, value: u16) {
         self.stack[self.stack_pointer as usize] = value;
         self.stack_pointer += 1;
@@ -70,6 +85,44 @@ impl Emulator{
     fn pop(&mut self) -> u16 {
         self.stack_pointer -=1;
         self.stack[self.stack_pointer as  usize]
+    }
+
+    pub fn tick(&mut self) {
+        let opcode = self.fetch();
+        
+        self.execute(opcode);
+    }
+
+    fn fetch(&mut self) -> u16 {
+        let higher_byte = self.ram[self.program_counter as usize] as u16;
+        let lower_byte = self.ram[(self.program_counter + 1) as usize] as u16;
+        let opcode = (higher_byte << 8) | lower_byte;
+        self.program_counter += 2;
+        opcode
+    }
+
+    pub fn tick_timers(&mut self){
+        if self.delay_timer > 0 {
+            self.delay_timer -= 1;
+        }
+
+        if self.sound_timer > 0 {
+            if self.sound_timer == 1 {
+                //sound
+            }
+            self.sound_timer -= 1;
+        }
+    }
+
+    fn execute(&mut self, opcode: u16) {
+        let digit1 = (opcode & 0xF000) >> 12;
+        let digit2 = (opcode & 0x0F00) >> 8;
+        let digit3 = (opcode & 0x00F0) >> 4;
+        let digit4 = (opcode & 0x000F);
+
+        match (digit1, digit2, digit3, digit4) {
+            (_, _, _, _,) => unimplemented!(),
+        }
     }
 }
 
