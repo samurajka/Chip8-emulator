@@ -1,4 +1,5 @@
 use core::borrow;
+use rand::random;
 
 const FONTSET_SIZE: usize = 80;
 
@@ -242,6 +243,38 @@ impl Emulator{
 
                 self.v_registers[x] = new_vx;
                 self.v_registers[0xF] = new_vf;
+            },
+            // VX <<= 1
+            (8, _, _, 8) => {
+                let x = digit2 as usize;
+                let msb = (self.v_registers[x] >> 7) & 1;
+                self.v_registers[x] <<= 1;
+                self.v_registers[0xF] = msb;
+            },
+            // SKIP VX != VY
+            (9, _, _, 0) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                if self.v_registers[x] != self.v_registers[y] {
+                    self.program_counter += 2;
+                }
+            },
+            // I = NNN
+            (0xA, _, _, _) => {
+                let nnn = opcode & 0xFFF;
+                self.i_register = nnn;
+            },
+            // JMP V0 + NNN
+            (0xB, _, _, _) => {
+                let nnn = opcode & 0xFFF;
+                self.program_counter = (self.v_registers[0] as u16) + nnn;
+            },
+            // VX = random() & NN
+            (0xC, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                let rng: u8 = random();
+                self.v_registers[x] = rng & nn;
             }
             (_, _, _, _,) => unimplemented!(),
         }
