@@ -121,7 +121,7 @@ impl Emulator{
         let digit1 = (opcode & 0xF000) >> 12;
         let digit2 = (opcode & 0x0F00) >> 8;
         let digit3 = (opcode & 0x00F0) >> 4;
-        let digit4 = (opcode & 0x000F);
+        let digit4 = opcode & 0x000F;
 
         match (digit1, digit2, digit3, digit4) {
             // NOP  nop
@@ -304,7 +304,7 @@ impl Emulator{
                 }
             },
             // SKIP KEY PRESS  user input
-            (0xE, _, _, _) => {
+            (0xE, _, 9, 0xE) => {
                 let x = digit2 as usize;
                 let vx = self.v_registers[x];
                 let key = self.keys[vx as usize];
@@ -346,11 +346,53 @@ impl Emulator{
                 let x = digit2 as usize;
                 self.delay_timer = self.v_registers[x];
             },
-            
+            // ST = VX
+            (0xF, _, 1, 8) => {
+                let x = digit2 as usize;
+                self.sound_timer = self.v_registers[x];
+            },
+            // I += VX
+            (0xF, _, 1, 0xE) => {
+                let x = digit2 as usize;
+                let vx = self.v_registers[x] as u16;
+                self.i_register = self.i_register.wrapping_add(vx);
+            },
+            // I = FONT
+            (0xF, _, 2, 9) => {
+                let x = digit2 as usize;
+                let c = self.v_registers[x] as u16;
+                self.i_register = c * 5;
+            },
+            // BCD  binary-coded decimal
+            (0xF, _, 3, 3) => {
+                let x = digit2 as usize;
+                let vx = self.v_registers[x] as f32;
+                let hundreds = (vx / 100.0).floor() as u8;
+                let tens = ((vx /10.0) % 10.0).floor() as u8;
+                let ones = (vx % 10.0) as u8;
+
+                self.ram[self.i_register as usize] = hundreds;
+                self.ram[(self.i_register + 1) as usize] = tens;
+                self.ram[(self.i_register + 2) as usize] = ones;
+            },
+            // STORE V0 - VX
+            (0xF, _, 5, 5) => {
+                let x = digit2 as usize;
+                let i = self.i_register as usize;
+                for index in 0..=x {
+                    self.ram[i + index] = self.v_registers[index];
+                }
+            },
+            // LOAD V0 - VX
+            (0xF, _, 6, 5) => {
+                let x = digit2 as usize;
+                let i = self.i_register as usize;
+                for index in 0..=x {
+                    self.v_registers[index] = self.ram[i + index];
+                }
+            }
             (_, _, _, _,) => unimplemented!(),
         }
     }
-
-
 }
 
