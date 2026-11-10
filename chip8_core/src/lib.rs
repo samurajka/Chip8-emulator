@@ -275,7 +275,78 @@ impl Emulator{
                 let nn = (opcode & 0xFF) as u8;
                 let rng: u8 = random();
                 self.v_registers[x] = rng & nn;
-            }
+            },
+            // DRAW
+            (0xD, _, _, _) => {
+                let x_coord = self.v_registers[digit2 as usize] as u16;
+                let y_coord = self.v_registers[digit3 as usize] as u16;
+                let row_count = digit4;
+                let mut flipped = false;
+                
+                for y_line in 0..row_count {
+                    let addr = self.i_register + y_line as u16;
+                    let pixels = self.ram[addr as usize];
+                    
+                    for x_line in 0..8 {
+                        if (pixels & (0b1000_0000 >> x_line)) != 0 {
+                            let x = (x_coord + x_line) as usize % SCREEN_WIDTH;
+                            let y = (y_coord + y_line) as usize % SCREEN_HEIGHT;
+                            let index = x + SCREEN_WIDTH * y;
+                            flipped |= self.screen[index];
+                            self.screen[index] ^= true;
+                        }
+                    }
+                }
+                if flipped {
+                    self.v_registers[0xF] = 1;
+                } else {
+                    self.v_registers[0xF] = 0;
+                }
+            },
+            // SKIP KEY PRESS  user input
+            (0xE, _, _, _) => {
+                let x = digit2 as usize;
+                let vx = self.v_registers[x];
+                let key = self.keys[vx as usize];
+                if key {
+                    self.program_counter += 2;
+                }
+            },
+            // SKIP KEY RELEASE
+            (0xE, _, 0xA, 1) => {
+                let x = digit2 as usize;
+                let vx = self.v_registers[x];
+                let key = self.keys[vx as usize];
+                if !key {
+                    self.program_counter += 2;
+                }
+            },
+            // VX = DT
+            (0xF, _, 0, 7) => {
+                let x = digit2 as usize;
+                self.v_registers[x] = self.delay_timer;
+            },
+            // WAIT KEY
+            (0xF, _, 0, 0xA) => {
+                let x = digit2 as usize;
+                let mut pressed = false;
+                for i in 0..self.keys.len() {
+                    if self.keys[i] {
+                        self.v_registers[x] = i as u8;
+                        pressed = true;
+                        break;
+                    }
+                }
+                if !pressed{
+                    self.program_counter -= 2; // repeat the opcode
+                }
+            },
+            // DT = VX
+            (0xF, _, 1, 5) => {
+                let x = digit2 as usize;
+                self.delay_timer = self.v_registers[x];
+            },
+            
             (_, _, _, _,) => unimplemented!(),
         }
     }
