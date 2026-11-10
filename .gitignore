@@ -3,3 +3,5 @@ chip8_core/Cargo.lock
 
 desktop/target
 desktop/Cargo.lock
+desktop/src/chip8fishie.ch8 
+desktop/src/chip8test.ch8 
