@@ -117,6 +117,20 @@ impl Emulator{
         }
     }
 
+    pub fn get_display(&self) -> &[bool] {
+        &self.screen
+    }
+
+    pub fn keypress(&mut self, index: usize, pressed: bool) {
+        self.keys[index] = pressed;
+    }
+
+    pub fn load_game(&mut self, data: &[u8]) {
+        let start = START_ADDRESS as usize;
+        let end = (START_ADDRESS as usize) + data.len();
+        self.ram[start..end].copy_from_slice(data);
+    }
+
     fn execute(&mut self, opcode: u16) {
         let digit1 = (opcode & 0xF000) >> 12;
         let digit2 = (opcode & 0x0F00) >> 8;
