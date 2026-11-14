@@ -7,3 +7,6 @@ desktop/src/chip8fishie.ch8
 desktop/src/chip8test.ch8 
 
 desktop/test_games
+
+wasm/target
+wasm/Cargo.lock

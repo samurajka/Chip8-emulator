@@ -16,7 +16,7 @@ const SCALE: u32 = 15;
 const WINDOW_WIDTH: u32 = (SCREEN_WIDTH as u32) * SCALE;
 const WINDOW_HEIGHT: u32 = (SCREEN_HEIGHT as u32) * SCALE;
 
-const TICKS_PER_FRAME: usize = 3; // this changes the game speed, different systems and games might require to tune this number
+const TICKS_PER_FRAME: usize = 2; // this changes the game speed, different systems and games might require to tune this number
 
 fn draw_screen(emulator: &Emulator, canvas: &mut Canvas<Window>) {
     canvas.set_draw_color(Color::RGB(0, 0, 0));
