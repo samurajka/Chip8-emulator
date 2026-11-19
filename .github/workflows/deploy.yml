@@ -12,11 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: cargo install wasm-pack
-      - run: cd chip8_core
-      - run: cargo build
-      - run: cd ..
-      - run: cd wasm
-      - run: wasm-pack build --target web
-      - run: mv pkg/wasm.js web
-      - run: mv pkg/wasm_bg.wasm web
-      - run: ls
+      - run: | 
+          cd chip8_core
+          cargo build
+      - run: |
+          cd wasm
+          wasm-pack build --target web
+          mv pkg/wasm.js web
+          mv pkg/wasm_bg.wasm web
+          ls web
