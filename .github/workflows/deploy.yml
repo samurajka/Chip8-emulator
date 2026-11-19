@@ -11,18 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions-rs/toolchain@v1
-        name: setup_rust
-        with: 
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        name: install_wasm
-        with:
-          command: install wasm-pack
-      - uses: actions-rs/cargo@v1
-        name: build_core
-        with:
-          command: build /chip8_core
+      - run: cargo install wasm-pack
+      - run: cargo build /chip8_core
       - run: cd wasm
       - run: wasm-pack build --target web
       - run: mv pkg/wasm.js web
