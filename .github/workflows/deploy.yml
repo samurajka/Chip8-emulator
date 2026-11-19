@@ -20,4 +20,8 @@ jobs:
           wasm-pack build --target web
           mv pkg/wasm.js web
           mv pkg/wasm_bg.wasm web
-          ls web
+      - uses: cloudflare/wrangler-action@v4
+        with: 
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: wasm/web
